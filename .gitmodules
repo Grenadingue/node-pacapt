@@ -1,0 +1,3 @@
+[submodule "pacapt"]
+	path = pacapt
+	url = https://github.com/icy/pacapt
