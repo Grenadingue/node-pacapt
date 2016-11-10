@@ -1,0 +1,25 @@
+{
+  "name": "node-pacapt",
+  "version": "1.0.0",
+  "description": "A node.js wrapper of pacapt",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Grenadingue/node-pacapt.git"
+  },
+  "keywords": [
+    "pacapt",
+    "pacman",
+    "arch",
+    "archlinux"
+  ],
+  "author": "Grenadingue (Nicolas Chauvin)",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Grenadingue/node-pacapt/issues"
+  },
+  "homepage": "https://github.com/Grenadingue/node-pacapt#readme"
+}
