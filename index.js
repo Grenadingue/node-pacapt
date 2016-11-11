@@ -56,6 +56,10 @@ function update(inputArgs) {
   return install(inputArgs);
 }
 
+function updateAll() {
+  return execPacapt([opts.noConfirm, opts.Suy]);
+}
+
 function remove(inputArgs) {
   const args = [opts.noConfirm, opts.R].concat(inputArgs);
   return execPacapt(args);
@@ -66,4 +70,5 @@ module.exports.exec = execPacapt;
 module.exports.install = install;
 module.exports.updateDatabase = updateDatabase;
 module.exports.update = update;
+module.exports.updateAll = updateAll;
 module.exports.remove = remove;
