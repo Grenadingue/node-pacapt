@@ -43,26 +43,24 @@ function execPacapt(args) {
   });
 }
 
-function install(inputArgs) {
-  const args = [opts.noConfirm, opts.S].concat(inputArgs);
-  return execPacapt(args);
+function install(args) {
+  return execPacapt([opts.noConfirm, opts.S].concat(args));
 }
 
 function updateDatabase() {
   return execPacapt([opts.noConfirm, opts.Sy]);
 }
 
-function update(inputArgs) {
-  return install(inputArgs);
+function update(args) {
+  return install(args);
 }
 
 function updateAll() {
   return execPacapt([opts.noConfirm, opts.Suy]);
 }
 
-function remove(inputArgs) {
-  const args = [opts.noConfirm, opts.R].concat(inputArgs);
-  return execPacapt(args);
+function remove(args) {
+  return execPacapt([opts.noConfirm, opts.R].concat(args));
 }
 
 module.exports.opts = opts;
