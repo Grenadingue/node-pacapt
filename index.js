@@ -43,5 +43,27 @@ function execPacapt(args) {
   });
 }
 
+function install(inputArgs) {
+  const args = [opts.noConfirm, opts.S].concat(inputArgs);
+  return execPacapt(args);
+}
+
+function updateDatabase() {
+  return execPacapt([opts.noConfirm, opts.Sy]);
+}
+
+function update(inputArgs) {
+  return install(inputArgs);
+}
+
+function remove(inputArgs) {
+  const args = [opts.noConfirm, opts.R].concat(inputArgs);
+  return execPacapt(args);
+}
+
 module.exports.opts = opts;
 module.exports.exec = execPacapt;
+module.exports.install = install;
+module.exports.updateDatabase = updateDatabase;
+module.exports.update = update;
+module.exports.remove = remove;
