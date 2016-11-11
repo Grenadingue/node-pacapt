@@ -11,19 +11,35 @@ const opts = {
 };
 
 function execPacapt(args) {
-  console.log(__dirname + '/pacapt/pacapt', args);
-  const pacapt = spawn(__dirname + '/pacapt/pacapt', args);
+  return new Promise((fulfill, reject) => {
+    const output = {
+      command: __dirname + '/pacapt/pacapt',
+      args: args,
+      text: [],
+      exitCode: null,
+      error: null
+    };
+    const pacapt = spawn(output.command, args);
 
-  pacapt.stdout.on('data', (data) => {
-    console.log(`stdout: ${data}`);
-  });
+    pacapt.stdout.on('data', (data) => {
+      const outputObject = { type: 'stdout', data: data.toString('utf8') };
+      output.text.push(outputObject);
+    });
 
-  pacapt.stderr.on('data', (data) => {
-    console.log(`stderr: ${data}`);
-  });
+    pacapt.stderr.on('data', (data) => {
+      const outputObject = { type: 'stderr', data: data.toString('utf8') };
+      output.text.push(outputObject);
+    });
 
-  pacapt.on('close', (code) => {
-    console.log(`pacapt exited status ${code}`);
+    pacapt.on('close', (code) => {
+      output.exitCode = code;
+      fulfill(output);
+    });
+
+    pacapt.on('error', (error) => {
+      output.error = error;
+      reject(output);
+    });
   });
 }
 
