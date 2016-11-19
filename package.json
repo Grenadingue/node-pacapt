@@ -26,5 +26,8 @@
   "homepage": "https://github.com/Grenadingue/node-pacapt#readme",
   "jshintConfig": {
     "esversion": 6
+  },
+  "dependencies": {
+    "semaphore": "^1.0.5"
   }
 }
