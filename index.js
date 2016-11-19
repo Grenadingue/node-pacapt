@@ -37,7 +37,12 @@ function execPacapt(args) {
       pacapt.on('close', (code) => {
         output.exitCode = code;
         semaphore.leave();
-        fulfill(output);
+        if (code === 0) {
+          fulfill(output);
+        } else {
+          output.error = 'Non-zero exit code';
+          reject(output);
+        }
       });
 
       pacapt.on('error', (error) => {
