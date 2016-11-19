@@ -27,7 +27,5 @@
   "jshintConfig": {
     "esversion": 6
   },
-  "dependencies": {
-    "semaphore": "^1.0.5"
-  }
+  "dependencies": {}
 }

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const spawn = require('child_process').spawn;
-const semaphore = require('semaphore')(1);
 
 const opts = {
   Q: '-Q', Qc: '-Qc', Qi: '-Qi', Ql: '-Ql', Qm: '-Qm', Qo: '-Qo', Qp: '-Qp', Qs: '-Qs', Qu: '-Qu',
@@ -21,35 +20,31 @@ function execPacapt(args) {
       error: null
     };
 
-    semaphore.take(() => {
-      const pacapt = spawn(output.command, args);
+    const pacapt = spawn(output.command, args);
 
-      pacapt.stdout.on('data', (data) => {
-        const outputObject = { type: 'stdout', data: data.toString('utf8') };
-        output.text.push(outputObject);
-      });
+    pacapt.stdout.on('data', (data) => {
+      const outputObject = { type: 'stdout', data: data.toString('utf8') };
+      output.text.push(outputObject);
+    });
 
-      pacapt.stderr.on('data', (data) => {
-        const outputObject = { type: 'stderr', data: data.toString('utf8') };
-        output.text.push(outputObject);
-      });
+    pacapt.stderr.on('data', (data) => {
+      const outputObject = { type: 'stderr', data: data.toString('utf8') };
+      output.text.push(outputObject);
+    });
 
-      pacapt.on('close', (code) => {
-        output.exitCode = code;
-        semaphore.leave();
-        if (code === 0) {
-          fulfill(output);
-        } else {
-          output.error = 'Non-zero exit code';
-          reject(output);
-        }
-      });
-
-      pacapt.on('error', (error) => {
-        output.error = error;
-        semaphore.leave();
+    pacapt.on('close', (code) => {
+      output.exitCode = code;
+      if (code === 0) {
+        fulfill(output);
+      } else {
+        output.error = 'Non-zero exit code';
         reject(output);
-      });
+      }
+    });
+
+    pacapt.on('error', (error) => {
+      output.error = error;
+      reject(output);
     });
   });
 }
