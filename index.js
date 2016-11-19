@@ -43,12 +43,30 @@ function execPacapt(args) {
   });
 }
 
+const execPacaptCommands = {};
+Object.keys(opts).forEach((optionKey) => {
+  const option = opts[optionKey];
+  if (option[1] !== '-') { // to not add --noconfirm as an executable command
+    execPacaptCommands[optionKey] = function(args) {
+      var optsArgs = [];
+      if (optionKey[0] === 'S' || optionKey[0] === 'U' || optionKey[0] === 'R') {
+        optsArgs.push(opts.noConfirm);
+      }
+      optsArgs.push(option);
+      if (args && args.constructor === Array && args.length > 0) {
+        optsArgs = optsArgs.concat(args);
+      }
+      return execPacapt(optsArgs);
+    };
+  }
+});
+
 function install(args) {
-  return execPacapt([opts.noConfirm, opts.S].concat(args));
+  return execPacaptCommands.S(args);
 }
 
 function updateDatabase() {
-  return execPacapt([opts.noConfirm, opts.Sy]);
+  return execPacaptCommands.Sy();
 }
 
 function update(args) {
@@ -56,13 +74,14 @@ function update(args) {
 }
 
 function updateAll() {
-  return execPacapt([opts.noConfirm, opts.Suy]);
+  return execPacaptCommands.Suy();
 }
 
 function remove(args) {
-  return execPacapt([opts.noConfirm, opts.R].concat(args));
+  return execPacaptCommands.R(args);
 }
 
+module.exports = execPacaptCommands;
 module.exports.opts = opts;
 module.exports.exec = execPacapt;
 module.exports.install = install;
