@@ -109,6 +109,12 @@ function retrieveAvailableOperations() {
         }
       });
 
+      stdout = stdout.split('\n');
+      stdout = stdout[0] ? stdout[0] : '';
+      stdout = stdout.split(':');
+      stdout = stdout[2] ? stdout[2] : '';
+      stdout = stdout.split(' ');
+
       fulfill(stdout);
     })
     .catch((output) => {
