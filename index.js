@@ -2,6 +2,11 @@
 
 const spawn = require('child_process').spawn;
 
+const localInfos = {
+  packageManager: 'undefined',
+  availableOpts: []
+};
+
 const opts = {
   Q: '-Q', Qc: '-Qc', Qi: '-Qi', Ql: '-Ql', Qm: '-Qm', Qo: '-Qo', Qp: '-Qp', Qs: '-Qs', Qu: '-Qu',
   R: '-R', Rn: '-Rn', Rns: '-Rns', Rs: '-Rs',
@@ -80,6 +85,7 @@ function retrieveLocalPackageManager() {
 
     retriever.on('close', (code) => {
       if (code === 0) {
+        localInfos.packageManager = stdout;
         fulfill(stdout);
       } else {
         reject('Non-zero exit code: ' + code);
@@ -92,10 +98,15 @@ function retrieveLocalPackageManager() {
   });
 }
 
-function retrieveAvailableOperations() {
+function retrieveAvailableOperations(packageManager) {
   return new Promise((fulfill, reject) => {
+    if (packageManager === 'pacman') {
+      localInfos.availableOpts = opts;
+      delete localInfos.availableOpts.noConfirm;
+      fulfill(localInfos.availableOpts);
+    }
+
     execPacapt(['-P']).then((output) => {
-      const availableOperations = [];
       var tmp = '';
 
       output.text.forEach((outputObject) => {
@@ -110,13 +121,14 @@ function retrieveAvailableOperations() {
       tmp = tmp[2] ? tmp[2] : '';
       tmp = tmp.split(' ');
 
+      localInfos.availableOpts = [];
       tmp.forEach((operation) => {
         if (operation !== '') {
-          availableOperations.push(operation);
+          localInfos.availableOpts.push(operation);
         }
       });
 
-      fulfill(availableOperations);
+      fulfill(localInfos.availableOpts);
     })
     .catch((output) => {
       reject(output.error);
@@ -127,21 +139,22 @@ function retrieveAvailableOperations() {
 function init() {
   return new Promise((fulfill, reject) => {
     retrieveLocalPackageManager().then((packageManager) => {
-      if (packageManager !== 'pacman') {
-        retrieveAvailableOperations().then((operations) => {
-          console.log(packageManager, 'found,', operations);
-        }).catch((error) => {
-          console.log('error:', error);
-        });
-      } else {
-        console.log('pacman found, all options available');
-      }
+      retrieveAvailableOperations(packageManager).then((operations) => {
+        console.log(packageManager, 'found,', operations);
+        fulfill();
+      }).catch((error) => {
+        reject(error);
+      });
     })
     .catch((error) => {
       reject(error);
     });
   });
 }
+
+init().then(() => {
+  init();
+});
 
 // -S install package(s)
 // -Sy update database
@@ -170,6 +183,7 @@ function remove(args) {
 }
 
 module.exports = execPacaptCommands;
+module.exports.localInfos = localInfos;
 module.exports.opts = opts;
 module.exports.init = init;
 module.exports.exec = execPacapt;
