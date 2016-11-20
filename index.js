@@ -67,6 +67,90 @@ Object.keys(opts).forEach((optionKey) => {
   }
 });
 
+function retrieveLocalPackageManager() {
+  return new Promise((fulfill, reject) => {
+    const retriever = spawn(__dirname + '/local_package_manager.bash', []);
+    var stdout = '';
+
+    // local_package_manager.bash should only print one line
+    retriever.stdout.on('data', (data) => {
+      stdout = data.toString('utf8').split('\n');
+      stdout = stdout[0] ? stdout[0] : '';
+    });
+
+    retriever.on('close', (code) => {
+      if (code === 0) {
+        fulfill(stdout);
+      } else {
+        reject('Non-zero exit code: ' + code);
+      }
+    });
+
+    retriever.on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+// retrieveLocalPackageManager().then((localPackageManager) => {
+//   console.log(localPackageManager);
+// }).catch((error) => {
+//   console.log('error:', error);
+// });
+
+function retrieveAvailableOperations() {
+  return new Promise((fulfill, reject) => {
+    execPacapt(['-P']).then((output) => {
+      var stdout = '';
+
+      output.text.forEach((outputObject) => {
+        if (outputObject.type == 'stdout') {
+          stdout += outputObject.data;
+        }
+      });
+
+      fulfill(stdout);
+    })
+    .catch((output) => {
+      console.log(output);
+      reject(output.error);
+    });
+  });
+}
+
+// retrieveAvailableOperations().then((operations) => {
+//   console.log(operations);
+// }).catch((error) => {
+//   console.log('error:', error);
+// });
+
+function init() {
+  return new Promise((fulfill, reject) => {
+    retrieveLocalPackageManager().then((packageManager) => {
+      if (packageManager !== 'pacman') {
+        retrieveAvailableOperations().then((operations) => {
+          console.log(packageManager, 'found,', operations);
+        }).catch((error) => {
+          console.log('error:', error);
+        });
+      } else {
+        console.log('pacman found, all options available');
+      }
+    })
+    .catch((error) => {
+      reject(error);
+    });
+  });
+}
+
+init();
+
+// -S install package(s)
+// -Sy update database
+// -Su upgrade packages (download + install packages)
+// -Suy update database + upgrade packages
+// -R remove package(s)
+
 function install(args) {
   return execPacaptCommands.S(args);
 }
