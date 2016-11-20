@@ -92,12 +92,6 @@ function retrieveLocalPackageManager() {
   });
 }
 
-// retrieveLocalPackageManager().then((localPackageManager) => {
-//   console.log(localPackageManager);
-// }).catch((error) => {
-//   console.log('error:', error);
-// });
-
 function retrieveAvailableOperations() {
   return new Promise((fulfill, reject) => {
     execPacapt(['-P']).then((output) => {
@@ -130,12 +124,6 @@ function retrieveAvailableOperations() {
   });
 }
 
-// retrieveAvailableOperations().then((operations) => {
-//   console.log(operations);
-// }).catch((error) => {
-//   console.log('error:', error);
-// });
-
 function init() {
   return new Promise((fulfill, reject) => {
     retrieveLocalPackageManager().then((packageManager) => {
@@ -154,8 +142,6 @@ function init() {
     });
   });
 }
-
-init();
 
 // -S install package(s)
 // -Sy update database
@@ -185,6 +171,7 @@ function remove(args) {
 
 module.exports = execPacaptCommands;
 module.exports.opts = opts;
+module.exports.init = init;
 module.exports.exec = execPacapt;
 module.exports.install = install;
 module.exports.updateDatabase = updateDatabase;
