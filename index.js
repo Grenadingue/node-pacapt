@@ -101,24 +101,30 @@ function retrieveLocalPackageManager() {
 function retrieveAvailableOperations() {
   return new Promise((fulfill, reject) => {
     execPacapt(['-P']).then((output) => {
-      var stdout = '';
+      const availableOperations = [];
+      var tmp = '';
 
       output.text.forEach((outputObject) => {
         if (outputObject.type == 'stdout') {
-          stdout += outputObject.data;
+          tmp += outputObject.data;
         }
       });
 
-      stdout = stdout.split('\n');
-      stdout = stdout[0] ? stdout[0] : '';
-      stdout = stdout.split(':');
-      stdout = stdout[2] ? stdout[2] : '';
-      stdout = stdout.split(' ');
+      tmp = tmp.split('\n');
+      tmp = tmp[0] ? tmp[0] : '';
+      tmp = tmp.split(':');
+      tmp = tmp[2] ? tmp[2] : '';
+      tmp = tmp.split(' ');
 
-      fulfill(stdout);
+      tmp.forEach((operation) => {
+        if (operation !== '') {
+          availableOperations.push(operation);
+        }
+      });
+
+      fulfill(availableOperations);
     })
     .catch((output) => {
-      console.log(output);
       reject(output.error);
     });
   });
