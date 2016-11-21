@@ -152,16 +152,6 @@ function init() {
   });
 }
 
-init().then(() => {
-  init();
-});
-
-// -S install package(s)
-// -Sy update database
-// -Su upgrade packages (download + install packages)
-// -Suy update database + upgrade packages
-// -R remove package(s)
-
 function install(args) {
   return execPacaptCommands.S(args);
 }
