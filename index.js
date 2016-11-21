@@ -2,6 +2,11 @@
 
 const spawn = require('child_process').spawn;
 
+const localInfos = {
+  packageManager: 'undefined',
+  availableOpts: []
+};
+
 const opts = {
   Q: '-Q', Qc: '-Qc', Qi: '-Qi', Ql: '-Ql', Qm: '-Qm', Qo: '-Qo', Qp: '-Qp', Qs: '-Qs', Qu: '-Qu',
   R: '-R', Rn: '-Rn', Rns: '-Rns', Rs: '-Rs',
@@ -67,6 +72,96 @@ Object.keys(opts).forEach((optionKey) => {
   }
 });
 
+function retrieveLocalPackageManager() {
+  return new Promise((fulfill, reject) => {
+    const retriever = spawn(__dirname + '/local_package_manager.bash', []);
+    var stdout = '';
+
+    // local_package_manager.bash should only print one line
+    retriever.stdout.on('data', (data) => {
+      stdout = data.toString('utf8').split('\n');
+      stdout = stdout[0] ? stdout[0] : '';
+    });
+
+    retriever.on('close', (code) => {
+      if (code === 0) {
+        localInfos.packageManager = stdout;
+        fulfill(stdout);
+      } else {
+        reject('Non-zero exit code: ' + code);
+      }
+    });
+
+    retriever.on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+function retrieveAvailableOperations(packageManager) {
+  return new Promise((fulfill, reject) => {
+    if (packageManager === 'pacman') {
+      localInfos.availableOpts = opts;
+      delete localInfos.availableOpts.noConfirm;
+      fulfill(localInfos.availableOpts);
+    }
+
+    execPacapt(['-P']).then((output) => {
+      var tmp = '';
+
+      output.text.forEach((outputObject) => {
+        if (outputObject.type == 'stdout') {
+          tmp += outputObject.data;
+        }
+      });
+
+      tmp = tmp.split('\n');
+      tmp = tmp[0] ? tmp[0] : '';
+      tmp = tmp.split(':');
+      tmp = tmp[2] ? tmp[2] : '';
+      tmp = tmp.split(' ');
+
+      localInfos.availableOpts = [];
+      tmp.forEach((operation) => {
+        if (operation !== '') {
+          localInfos.availableOpts.push(operation);
+        }
+      });
+
+      fulfill(localInfos.availableOpts);
+    })
+    .catch((output) => {
+      reject(output.error);
+    });
+  });
+}
+
+function init() {
+  return new Promise((fulfill, reject) => {
+    retrieveLocalPackageManager().then((packageManager) => {
+      retrieveAvailableOperations(packageManager).then((operations) => {
+        console.log(packageManager, 'found,', operations);
+        fulfill();
+      }).catch((error) => {
+        reject(error);
+      });
+    })
+    .catch((error) => {
+      reject(error);
+    });
+  });
+}
+
+init().then(() => {
+  init();
+});
+
+// -S install package(s)
+// -Sy update database
+// -Su upgrade packages (download + install packages)
+// -Suy update database + upgrade packages
+// -R remove package(s)
+
 function install(args) {
   return execPacaptCommands.S(args);
 }
@@ -88,7 +183,9 @@ function remove(args) {
 }
 
 module.exports = execPacaptCommands;
+module.exports.localInfos = localInfos;
 module.exports.opts = opts;
+module.exports.init = init;
 module.exports.exec = execPacapt;
 module.exports.install = install;
 module.exports.updateDatabase = updateDatabase;
