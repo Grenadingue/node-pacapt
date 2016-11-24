@@ -101,8 +101,11 @@ function retrieveLocalPackageManager() {
 function retrieveAvailableOperations(packageManager) {
   return new Promise((fulfill, reject) => {
     if (packageManager === 'pacman') {
-      localInfos.availableOpts = opts;
-      delete localInfos.availableOpts.noConfirm;
+      Object.keys(opts).forEach((optionKey) => {
+        if (optionKey[1] !== '-') {
+          localInfos.availableOpts.push(optionKey);
+        }
+      });
       fulfill(localInfos.availableOpts);
     }
 
