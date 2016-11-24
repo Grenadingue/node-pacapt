@@ -1,6 +1,6 @@
 {
   "name": "node-pacapt",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A node.js wrapper of pacapt",
   "main": "index.js",
   "scripts": {
