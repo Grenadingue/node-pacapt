@@ -140,7 +140,6 @@ function init() {
   return new Promise((fulfill, reject) => {
     retrieveLocalPackageManager().then((packageManager) => {
       retrieveAvailableOperations(packageManager).then((operations) => {
-        console.log(packageManager, 'found,', operations);
         fulfill();
       }).catch((error) => {
         reject(error);
