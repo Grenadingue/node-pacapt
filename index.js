@@ -60,7 +60,8 @@ Object.keys(opts).forEach((optionKey) => {
   if (option[1] !== '-') { // to not add --noconfirm as an executable command
     execPacaptCommands[optionKey] = function(args) {
       var optsArgs = [];
-      if (optionKey[0] === 'S' || optionKey[0] === 'U' || optionKey[0] === 'R') {
+      if ((optionKey[0] === 'S' || optionKey[0] === 'U' || optionKey[0] === 'R') &&
+      (optionKey[1] !== 's' && optionKey[1] !== 'i')) {
         optsArgs.push(opts.noConfirm);
       }
       optsArgs.push(option);
