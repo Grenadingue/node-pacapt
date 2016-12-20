@@ -42,7 +42,7 @@ const opts = {
 ```
 
 - All options available here can also be used with short typo, e.g. `pacapt.S([])` (except `noConfirm`)
-- `pacapt` [arguments compatibility](https://github.com/icy/pacapt#implemented-operations) for each package manager can be found in `pacapt.localInfos.availableOpts` as an array of string
+- `pacapt` [arguments compatibility](https://github.com/icy/pacapt#implemented-operations) with the local package manager can be found in `pacapt.localInfos.availableOpts` as an array of string
 
 ### Methods usage
 ```js
