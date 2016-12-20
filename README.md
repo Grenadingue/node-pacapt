@@ -3,9 +3,9 @@ A `node.js` wrapper of [`pacapt`](https://github.com/icy/pacapt)
 
 ## Install
 ```
-npm install git+https://github.com/Grenadingue/node-pacapt
-npm install --save git+https://github.com/Grenadingue/node-pacapt
+npm install --save https://github.com/Grenadingue/node-pacapt
 ```
+*Note: (At least for now) You need to execute this command inside a git repository, or it will fail saying that an error occured during `git submodule update --init`*
 
 ## Module overview
 ### Available methods
