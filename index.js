@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const spawn = require('child_process').spawn;
+const os = require('os');
 
 const localInfos = {
   packageManager: 'undefined',
@@ -15,10 +16,13 @@ const opts = {
   noConfirm: '--noconfirm'
 };
 
+const pacaptPath = os.type() == 'Windows_NT' ?
+  __dirname + '\\batch-pacapt\\pacapt.cmd' : __dirname + '/pacapt/pacapt';
+
 function execPacapt(args) {
   return new Promise((fulfill, reject) => {
     const output = {
-      command: __dirname + '/pacapt/pacapt',
+      command: pacaptPath,
       args: args,
       text: [],
       exitCode: null,
