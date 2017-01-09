@@ -5,14 +5,23 @@ const os = require('os');
 
 const localInfos = {
   packageManager: 'undefined',
-  availableOpts: []
+  availableOperations: []
 };
 
-const opts = {
-  Q: '-Q', Qc: '-Qc', Qi: '-Qi', Ql: '-Ql', Qm: '-Qm', Qo: '-Qo', Qp: '-Qp', Qs: '-Qs', Qu: '-Qu',
+const operations = {
+  // -Q*
+  Q: '-Q', Qc: '-Qc', Qi: '-Qi', Ql: '-Ql', Qm: '-Qm', Qo: '-Qo', Qp: '-Qp',
+  Qs: '-Qs', Qu: '-Qu',
+  // -R*
   R: '-R', Rn: '-Rn', Rns: '-Rns', Rs: '-Rs',
-  S: '-S', Sc: '-Sc', Scc: '-Scc', Sccc: '-Sccc', Si: '-Si', Sii: '-Sii', Sl: '-Sl', Ss: '-Ss', Su: '-Su', Suy: '-Suy', Sw: '-Sw', Sy: '-Sy',
+  // -S*
+  S: '-S', Sc: '-Sc', Scc: '-Scc', Sccc: '-Sccc', Si: '-Si', Sii: '-Sii',
+  Sl: '-Sl', Ss: '-Ss', Su: '-Su', Suy: '-Suy', Sw: '-Sw', Sy: '-Sy',
+  // -U*
   U: '-U',
+};
+
+const options = {
   noConfirm: '--noconfirm'
 };
 
@@ -59,21 +68,19 @@ function execPacapt(args) {
 }
 
 const execPacaptCommands = {};
-Object.keys(opts).forEach((optionKey) => {
-  const option = opts[optionKey];
-  if (option[1] !== '-') { // to not add --noconfirm as an executable command
-    execPacaptCommands[optionKey] = function(args) {
-      var optsArgs = [];
-      if (optionKey[0] === 'S' || optionKey[0] === 'U' || optionKey[0] === 'R') {
-        optsArgs.push(opts.noConfirm);
-      }
-      optsArgs.push(option);
-      if (args && args.constructor === Array && args.length > 0) {
-        optsArgs = optsArgs.concat(args);
-      }
-      return execPacapt(optsArgs);
-    };
-  }
+Object.keys(operations).forEach((operationKey) => {
+  const operation = operations[operationKey];
+  execPacaptCommands[operationKey] = function(inputArgs) {
+    var args = [];
+    if (operationKey[0] === 'S' || operationKey[0] === 'U' || operationKey[0] === 'R') {
+      args.push(options.noConfirm);
+    }
+    args.push(operation);
+    if (inputArgs && inputArgs.constructor === Array && inputArgs.length > 0) {
+      args = args.concat(inputArgs);
+    }
+    return execPacapt(args);
+  };
 });
 
 function retrieveLocalPackageManager() {
@@ -105,9 +112,8 @@ function retrieveLocalPackageManager() {
 function retrieveAvailableOperations(packageManager) {
   return new Promise((fulfill, reject) => {
     if (packageManager === 'pacman') {
-      localInfos.availableOpts = opts;
-      delete localInfos.availableOpts.noConfirm;
-      fulfill(localInfos.availableOpts);
+      localInfos.availableOperations = operations;
+      fulfill(localInfos.availableOperations);
     }
 
     execPacapt(['-P']).then((output) => {
@@ -125,14 +131,14 @@ function retrieveAvailableOperations(packageManager) {
       tmp = tmp[2] ? tmp[2] : '';
       tmp = tmp.split(' ');
 
-      localInfos.availableOpts = [];
+      localInfos.availableOperations = [];
       tmp.forEach((operation) => {
         if (operation !== '') {
-          localInfos.availableOpts.push(operation);
+          localInfos.availableOperations.push(operation);
         }
       });
 
-      fulfill(localInfos.availableOpts);
+      fulfill(localInfos.availableOperations);
     })
     .catch((output) => {
       reject(output.error);
@@ -177,7 +183,8 @@ function remove(args) {
 
 module.exports = execPacaptCommands;
 module.exports.localInfos = localInfos;
-module.exports.opts = opts;
+module.exports.operations = operations;
+module.exports.options = options;
 module.exports.init = init;
 module.exports.exec = execPacapt;
 module.exports.install = install;
