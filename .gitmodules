@@ -1,3 +1,6 @@
 [submodule "pacapt"]
 	path = pacapt
 	url = https://github.com/icy/pacapt
+[submodule "batch-pacapt"]
+	path = batch-pacapt
+	url = https://github.com/Grenadingue/batch-pacapt
