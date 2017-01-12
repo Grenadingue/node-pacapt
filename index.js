@@ -4,8 +4,8 @@ const spawn = require('child_process').spawn;
 const os = require('os');
 
 const localInfos = {
-  packageManager: 'undefined',
-  availableOperations: []
+  packageManager: undefined,
+  availableOperations: undefined,
 };
 
 const operations = {
@@ -85,6 +85,10 @@ Object.keys(operations).forEach((operationKey) => {
 
 function retrieveLocalPackageManager() {
   return new Promise((fulfill, reject) => {
+    if (os.type() == 'Windows_NT') {
+      fulfill('chocolatey');
+    }
+
     const retriever = spawn(__dirname + '/local_package_manager.bash', []);
     var stdout = '';
 
@@ -96,7 +100,6 @@ function retrieveLocalPackageManager() {
 
     retriever.on('close', (code) => {
       if (code === 0) {
-        localInfos.packageManager = stdout;
         fulfill(stdout);
       } else {
         reject('Non-zero exit code: ' + code);
@@ -112,11 +115,11 @@ function retrieveLocalPackageManager() {
 function retrieveAvailableOperations(packageManager) {
   return new Promise((fulfill, reject) => {
     if (packageManager === 'pacman') {
-      localInfos.availableOperations = operations;
-      fulfill(localInfos.availableOperations);
+      fulfill(operations);
     }
 
     execPacapt(['-P']).then((output) => {
+      const availableOperations = {};
       var tmp = '';
 
       output.text.forEach((outputObject) => {
@@ -125,20 +128,19 @@ function retrieveAvailableOperations(packageManager) {
         }
       });
 
-      tmp = tmp.split('\n');
+      tmp = tmp.split(os.EOL);
       tmp = tmp[0] ? tmp[0] : '';
       tmp = tmp.split(':');
       tmp = tmp[2] ? tmp[2] : '';
       tmp = tmp.split(' ');
 
-      localInfos.availableOperations = [];
       tmp.forEach((operation) => {
         if (operation !== '') {
-          localInfos.availableOperations.push(operation);
+          availableOperations[operation] = `-${operation}`;
         }
       });
 
-      fulfill(localInfos.availableOperations);
+      fulfill(availableOperations);
     })
     .catch((output) => {
       reject(output.error);
@@ -149,7 +151,9 @@ function retrieveAvailableOperations(packageManager) {
 function init() {
   return new Promise((fulfill, reject) => {
     retrieveLocalPackageManager().then((packageManager) => {
-      retrieveAvailableOperations(packageManager).then((operations) => {
+      localInfos.packageManager = packageManager;
+      retrieveAvailableOperations(packageManager).then((availableOperations) => {
+        localInfos.availableOperations = availableOperations;
         fulfill();
       }).catch((error) => {
         reject(error);
