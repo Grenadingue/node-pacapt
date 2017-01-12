@@ -1,11 +1,11 @@
 # node-pacapt
-A node.js wrapper of [pacapt](https://github.com/icy/pacapt)
+A `node.js` wrapper of [`pacapt`](https://github.com/icy/pacapt)
 
 ## Install
 ```
-npm install git+https://github.com/Grenadingue/node-pacapt
-npm install --save git+https://github.com/Grenadingue/node-pacapt
+npm install --save https://github.com/Grenadingue/node-pacapt
 ```
+*Note: (At least for now) You need to execute this command inside a git repository, or it will fail saying that an error occured during `git submodule update --init`*
 
 ## Module overview
 ### Available methods
@@ -13,8 +13,13 @@ npm install --save git+https://github.com/Grenadingue/node-pacapt
 const pacapt = require('node-pacapt');
 const opts = pacapt.opts; // pacapt options
 
-// You can use raw options
+// You can use raw command line options
 pacapt.exec([opts.noConfirm, opts.S, 'foo']);
+pacapt.exec([opts.noConfirm, opts.Suy]);
+
+// Or use a shortest typo
+pacapt.S(['foo']); // --noconfirm -S
+pacapt.Suy([]); // --noconfirm -Suy
 
 // Or use these aliases
 pacapt.install(['foo']); // --noconfirm -S
@@ -26,8 +31,6 @@ pacapt.remove(['foo']); // --noconfirm -R
 
 ### Available options
 
-*Note: `pacapt` [arguments compatibility](https://github.com/icy/pacapt#implemented-operations) for each package manager is not checked by node*
-
 ```js
 const opts = {
   Q: '-Q', Qc: '-Qc', Qi: '-Qi', Ql: '-Ql', Qm: '-Qm', Qo: '-Qo', Qp: '-Qp', Qs: '-Qs', Qu: '-Qu',
@@ -38,25 +41,25 @@ const opts = {
 };
 ```
 
+- All options available here can also be used with short typo, e.g. `pacapt.S([])` (except `noConfirm`)
+- `pacapt` [arguments compatibility](https://github.com/icy/pacapt#implemented-operations) with the local package manager can be found in `pacapt.localInfos.availableOpts` as an array of string
+
 ### Methods usage
 ```js
 const pacapt = require('node-pacapt');
-const opts = pacapt.opts;
 
 pacapt.install(['foo'])
   .then((output) => {
-    if (output.exitCode === 0) {
-      console.log('install succeded');
-    } else {
-      console.log(`error code: ${output.exitStatus}`);
-    }
+    console.log('installation succeded');
+    console.log(output.error);
   })
-  .catch((output) => {
+  .catch((output) => { // non zero exit code or any other failure
+    console.log('installation failed');
     console.log(output.error);
   });
 ```
 
-- All methods (`exec()`, `install()`) work the same way, using promises
+- All methods (`pacapt.exec()`, `pacapt.S()`, `pacapt.install()`) work the same way, using promises
 - Both `then` and `catch` output objects are constructed the same way
 
 ### `output` structure
@@ -71,7 +74,11 @@ const output = {
 ```
 
 ## [`example.js`](/example.js) output
-Example code runs a `cmake` removal, then a package database update, then re-installs `cmake`
+Example code runs:
+- a first instance of a `cmake` removal, then a package database update, then re-installs `cmake`
+  - which theoretically succeeds
+- and also a second instance of the same remove, update db, re-install operations on `cmake`
+  - which this time theoretically fails, because of the previous instance of the package manager that is already running
 
 *Ran with Archlinux*
 
@@ -79,6 +86,17 @@ Example code runs a `cmake` removal, then a package database update, then re-ins
 [nicolas@Nico-PC node-pacapt]$ sudo node example.js 
 [sudo] password for nicolas: 
 Removing cmake...
+Trying to start a new pacapt instance at the same time
+2 Removing cmake...
+2 Error during cmake removal
+{ command: '/run/media/nicolas/TAF/perso/node-pacapt/pacapt/pacapt',
+  args: [ '--noconfirm', '-R', 'cmake' ],
+  text: 
+   [ { type: 'stderr',
+       data: 'error: failed to init transaction (unable to lock database)\nerror: could not lock database: File exists\n  if you\'re sure a package manager is not already\n  running, you can remove /var/lib/pacman/db.lck\n' } ],
+  exitCode: 1,
+  error: 'Non-zero exit code' }
+Cmake removed !
 { command: '/run/media/nicolas/TAF/perso/node-pacapt/pacapt/pacapt',
   args: [ '--noconfirm', '-R', 'cmake' ],
   text: 
@@ -97,19 +115,23 @@ Removing cmake...
        data: '(3/3) Updating the MIME type database...\n' } ],
   exitCode: 0,
   error: null }
-Cmake removed !
 Updating software database...
+Software database updated!
 { command: '/run/media/nicolas/TAF/perso/node-pacapt/pacapt/pacapt',
   args: [ '--noconfirm', '-Sy' ],
   text: 
    [ { type: 'stdout',
        data: ':: Synchronizing package databases...\n' },
      { type: 'stdout',
-       data: ' core is up to date\n extra is up to date\n community is up to date\n multilib is up to date\n infinality-bundle is up to date\n infinality-bundle-multilib is up to date\n' } ],
+       data: ' core is up to date\ndownloading extra.db...\n' },
+     { type: 'stdout', data: 'downloading community.db...\n' },
+     { type: 'stdout', data: 'downloading multilib.db...\n' },
+     { type: 'stdout',
+       data: ' infinality-bundle is up to date\n infinality-bundle-multilib is up to date\n' } ],
   exitCode: 0,
   error: null }
-Software database updated!
 Re-installing cmake...
+Cmake re-installed!
 { command: '/run/media/nicolas/TAF/perso/node-pacapt/pacapt/pacapt',
   args: [ '--noconfirm', '-S', 'cmake' ],
   text: 
@@ -135,5 +157,4 @@ Re-installing cmake...
        data: '(3/3) Updating the MIME type database...\n' } ],
   exitCode: 0,
   error: null }
-Cmake re-installed!
 ```
