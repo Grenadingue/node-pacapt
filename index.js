@@ -72,7 +72,8 @@ Object.keys(operations).forEach((operationKey) => {
   const operation = operations[operationKey];
   execPacaptCommands[operationKey] = function(inputArgs) {
     var args = [];
-    if (operationKey[0] === 'S' || operationKey[0] === 'U' || operationKey[0] === 'R') {
+    if ((operationKey[0] === 'S' || operationKey[0] === 'U' || operationKey[0] === 'R') &&
+        operationKey !== 'Ss') { // exception list is far from perfect, bugs may occur
       args.push(options.noConfirm);
     }
     args.push(operation);
